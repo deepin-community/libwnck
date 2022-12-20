@@ -1,0 +1,45 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/buildflags.mk
+
+include /usr/share/cdbs/1/class/autotools.mk
+include /usr/share/cdbs/1/rules/autoreconf.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/rules/utils.mk
+
+DEB_BUILD_PARALLEL = 1
+
+LDFLAGS += -Wl,-z,defs -Wl,-O1 -Wl,--as-needed
+
+DEB_DH_STRIP_ARGS_ALL = --dbgsym-migration='libwnck-dbg (<< 2.30.7-6~)'
+
+DEB_CONFIGURE_EXTRA_FLAGS += \
+	--libdir=/usr/lib/$(shell dpkg-architecture -qDEB_BUILD_MULTIARCH) \
+	--includedir=/usr/include/$(shell dpkg-architecture -qDEB_BUILD_MULTIARCH) \
+	--with-html-dir=\$${prefix}/share/gtk-doc/html/
+
+DEB_DH_INSTALL_ARGS += --fail-missing
+
+pre-build::
+	cp -a /usr/share/gtk-doc/data/gtk-doc.make .
+	mkdir -p ./m4/
+	cp -a /usr/share/aclocal/gtk-doc.m4 m4/
+	cp -a /usr/share/aclocal/intltool.m4 m4/
+clean::
+	rm -f gtk-doc.make
+	rm -f m4/gtk-doc.m4
+	rm -f m4/intltool.m4
+
+common-install-indep:: remove-cruft
+common-install-arch:: remove-cruft
+
+remove-cruft::
+	rm -fv debian/tmp/usr/lib/*/*.la
+	rm -fv debian/tmp/usr/lib/*/*.a
+	rm -fv debian/tmp/usr/bin/wnck-urgency-monitor
+	rm -fv debian/tmp/usr/bin/wnckprop
+
+get-orig-source:
+	uscan --noconf --force-download --rename --download-current-version --destdir=..

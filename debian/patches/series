@@ -1,0 +1,5 @@
+01_tasklist_orientation.patch
+02_stop-using-gnome-common.patch
+03_fix-inlinepixbufs.patch
+04_drop-GNOME-COMPILE-WARNINGS.patch
+98_drop-build-cruft.patch
